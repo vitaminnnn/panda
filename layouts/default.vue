@@ -1,44 +1,73 @@
 <template>
-  <div>
-    <div class="content">
-      <slot />
-    </div>
-  </div>
+  <header>
+    <h1>Weather App</h1>
+    <nav>
+      <div class="wrapper">
+        <NuxtLink to="/" class="nav-link" :title="$t('header.home')">{{
+          $t("header.home")
+        }}</NuxtLink>
+        <NuxtLink
+          to="/favorites"
+          class="nav-link"
+          :title="$t('header.favorites')"
+          >{{ $t("header.favorites") }}</NuxtLink
+        >
+      </div>
+      <SwitchLang />
+    </nav>
+  </header>
+  <slot />
 </template>
 
+<script>
+import SwitchLang from "~/components/SwitchLang.vue";
 
+export default {
+  components: {
+    SwitchLang,
+  },
+};
+</script>
 
 <style scoped>
-.header {
-  background-color: #3498db;
-  color: #fff;
-  padding: 15px;
+header {
+  background-color: black;
+  color: white;
+  padding: 16px;
   text-align: center;
+  border-radius: 0 0 5px 5px;
+  margin-bottom: 16px;
 }
 
-.header h2 {
+h1 {
   margin: 0;
+  font-size: 2em;
 }
 
-.tabs {
-  margin-top: 10px;
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-.tabs button {
-  background: none;
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  font-size: 16px;
-  margin-right: 15px;
-  padding: 5px 10px;
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  font-weight: 600;
+  font-size: 1.2em;
+  margin-top: 20px;
 }
 
-.tabs button.active {
-  border-bottom: 2px solid #fff;
+.nav-link {
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
 }
 
-.content {
-  padding: 20px;
+.nav-link:hover {
+  background-color: black;
 }
 </style>

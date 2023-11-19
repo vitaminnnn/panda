@@ -1,20 +1,25 @@
 <template>
-  <div
-    class="max-w-[320px] w-full h-16 fixed z-50 right-5 top-5 bg-green-200 rounded-[16px] flex items-center justify-between p-4"
-    v-if="notificationStore.toasts.length"
-  >
-    <div class="flex items-center gap-2 text-green-700">
-      <el-icon :size="24" color="green"><Select /></el-icon>
-      <p>{{ notificationStore.toasts[0].message }}</p>
-    </div>
+  <div class="notification-container" v-if="notificationStore.toasts.length">
+    <p>{{ notificationStore.toasts[0].message }}</p>
   </div>
 </template>
+
+<style>
+.notification-container {
+  max-width: 320px;
+  width: 100%;
+  position: fixed;
+  font-weight: 600;
+  z-index: 50;
+  right: 5px;
+  top: 5px;
+  background-color: lavender;
+  border-radius: 5px;
+  padding: 0 12px;
+}
+</style>
 
 <script setup>
 import { useNotificationStore } from "@/store/notification.js";
 const notificationStore = useNotificationStore();
-
-const closeNotification = () => {
-  notificationStore.clearToast(notificationStore.toasts[0].id);
-};
 </script>

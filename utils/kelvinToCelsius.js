@@ -1,6 +1,5 @@
-const kelvinToCelsius = (fahrenheit) => {
-  const celsius = kelvin - 273.15;
-  return celsius;
+const kelvinToCelsius = (kelvin) => {
+  return Math.round(kelvin - 273.15);
 };
 
 export default kelvinToCelsius;

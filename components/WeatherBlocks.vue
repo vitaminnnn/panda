@@ -5,13 +5,7 @@
       :key="cityWeather.id"
       class="weather-block"
     >
-      <WeatherCard
-        :city="cityWeather.city"
-        :country="cityWeather.country"
-        :temperature="cityWeather.temperature"
-        :humidity="cityWeather.humidity"
-        :wind-speed="cityWeather.windSpeed"
-      />
+      <WeatherCard :card-data="cityWeather" />
     </div>
   </div>
 </template>
@@ -20,41 +14,12 @@
 import WeatherCard from "@/components/WeatherCard.vue";
 
 export default {
+  name: "WeatherBlocks",
   components: {
     WeatherCard,
   },
-  // props: {
-  //   citiesWeather: Array,
-  // },
-  data() {
-    return {
-      citiesWeather: [
-        {
-          id: 1,
-          city: "Kyiv",
-          country: "UA",
-          temperature: 22,
-          humidity: 60,
-          windSpeed: 3,
-        },
-        {
-          id: 2,
-          city: "Paris",
-          country: "FR",
-          temperature: 18,
-          humidity: 75,
-          windSpeed: 5,
-        },
-        {
-          id: 3,
-          city: "New York",
-          country: "US",
-          temperature: 25,
-          humidity: 55,
-          windSpeed: 7,
-        },
-      ],
-    };
+  props: {
+    citiesWeather: Array,
   },
   methods: {
     removeCity(cityId) {

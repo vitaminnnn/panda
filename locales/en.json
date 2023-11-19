@@ -1,0 +1,23 @@
+{
+  "temperature": "Temperature: {temp}°C",
+  "humidity": "Humidity: {humidity}%",
+  "windSpeed": "Wind Speed: {speed} m/s",
+  "header": {
+    "home": "Home",
+    "favorites": "Favorites"
+  },
+  "autocomplete": {
+    "placeholder": "Search for a city..."
+  },
+  "remove" : "Remove",
+  "day": "Day",
+  "5days": "5 days",
+  "yes": "Yes",
+  "no": "No",
+  "modal": {
+    "description": "Are you sure you want to remove this card?"
+  },
+  "titleDay": "Weather for the day",
+  "title5Day": "Weather for 5 days",
+  "notification": "To add to favorites, remove the city. Maximum of 5 cities!"
+}

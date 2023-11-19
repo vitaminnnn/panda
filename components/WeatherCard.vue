@@ -1,54 +1,50 @@
 <template>
-  <div class="weather-card">
+  <div class="weather-card" v-if="Object.keys(cardData).length">
     <div class="weather-card__header">
-      <h3>{{ city }}, {{ country }}</h3>
-      <button @click="toggleFavorite" :class="{ 'favorite-btn': isFavorite }">&#9733;</button>
+      <h3 class="weather-card__title">
+        {{ cardData.name }}, {{ cardData.sys.country }}
+      </h3>
+      <button
+        @click="toggleFavorite"
+        class="weather-card__favorite-btn"
+        :class="{ 'weather-card__favorite-btn--active': getIsFavorites }"
+      >
+        &#9733;
+      </button>
     </div>
     <div class="weather-card__content">
-      <p>Temperature: {{ temperature }}°C</p>
-      <p>Humidity: {{ humidity }}%</p>
-      <p>Wind Speed: {{ windSpeed }} m/s</p>
-      <!-- Додайте інші властивості погоди, якщо потрібно -->
-    </div>
-    <div class="weather-card__actions" v-if="isFavorite">
-      <button @click="removeСard">Remove from Favorites</button>
+      <p class="weather-card__temperature">
+        {{ $t("temperature", { temp: kelvinToCelsius(cardData.main.temp) }) }}
+      </p>
+      <p class="weather-card__humidity">
+        {{ $t("humidity", { humidity: cardData.main.humidity }) }}
+      </p>
+      <p class="weather-card__wind-speed">
+        {{ $t("windSpeed", { speed: cardData.wind.speed }) }}
+      </p>
     </div>
   </div>
 </template>
 
 <script>
 export default {
+  name: "WeatherCard",
   props: {
-    city: String,
-    country: String,
-    temperature: Number,
-    humidity: Number,
-    windSpeed: Number,
-    // Додайте інші властивості погоди, якщо потрібно
+    cardData: {
+      type: Object,
+      default: () => ({}),
+    },
   },
-  data() {
-    return {
-      isFavorite: false,
-    };
+  computed: {
+    getIsFavorites() {
+      return this.cardData?.isFavorite;
+    },
   },
   methods: {
     toggleFavorite() {
-      this.isFavorite = !this.isFavorite;
-      if (this.isFavorite) {
-        this.$emit('add-to-favorites', {
-          city: this.city,
-          country: this.country,
-          temperature: this.temperature,
-          humidity: this.humidity,
-          windSpeed: this.windSpeed,
-          // Додайте інші властивості погоди, якщо потрібно
-        });
-      } else {
-        this.$emit('remove-from-favorites');
-      }
-    },
-    removeСard() {
-      this.$emit('remove-card');
+      this.$emit(
+        this.getIsFavorites ? "remove-from-favorites" : "add-to-favorites",
+      );
     },
   },
 };
@@ -58,8 +54,8 @@ export default {
 .weather-card {
   border: 1px solid #ddd;
   border-radius: 5px;
-  margin: 10px;
-  padding: 10px;
+  padding: 16px;
+  background: #fff;
 }
 
 .weather-card__header {
@@ -67,26 +63,34 @@ export default {
   justify-content: space-between;
 }
 
-.weather-card__header h3 {
+.weather-card__title {
   margin: 0;
 }
 
-.favorite-btn {
+.weather-card__favorite-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.weather-card__favorite-btn--active {
   background-color: #f8d300;
-  border: none;
-  padding: 5px;
-  cursor: pointer;
 }
 
-.weather-card__actions {
-  margin-top: 10px;
+.weather-card__content {
+  margin-top: 16px;
 }
 
-.weather-card__actions button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #f8d300;
-  text-decoration: underline;
+.weather-card__temperature,
+.weather-card__humidity,
+.weather-card__wind-speed,
+.weather-card__description {
+  margin: 0;
+}
+
+.weather-card__additional-content {
+  /* Additional styles for favorite city information */
 }
 </style>

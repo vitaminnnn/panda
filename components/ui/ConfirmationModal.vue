@@ -1,15 +1,29 @@
 <template>
-  <div class="modal">
+  <div class="modal" v-if="showModal">
     <div class="modal-content">
-      <p>Are you sure you want to delete this block?</p>
-      <button @click="confirmDelete">Yes</button>
-      <button @click="cancelDelete">No</button>
+      <p class="confirmation-message">
+        {{ $t("modal.description") }}
+      </p>
+      <div class="button-container">
+        <button @click="confirmDelete" class="confirm-button">
+          {{ $t("yes") }}
+        </button>
+        <button @click="cancelDelete" class="cancel-button">
+          {{ $t("no") }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 export default {
+  props: {
+    showModal: {
+      type: Boolean,
+      default: false,
+    },
+  },
   methods: {
     confirmDelete() {
       this.$emit("confirm-delete");
@@ -22,5 +36,50 @@ export default {
 </script>
 
 <style scoped>
-/* Add your modal styles here */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.confirmation-message {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+button {
+  padding: 8px 24px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+}
+
+.confirm-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+}
 </style>

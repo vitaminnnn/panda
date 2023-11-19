@@ -12,6 +12,7 @@
 
 <script>
 export default {
+  name: "SwitchLang",
   data() {
     return {
       showDropdown: false,
@@ -52,7 +53,6 @@ export default {
 }
 
 .dropdown-content {
-  display: none;
   position: absolute;
   background-color: #f9f9f9;
   min-width: 60px;
@@ -72,13 +72,13 @@ export default {
 }
 
 .dropdown-content button:hover {
-  background-color: #f1f1f1;
+  background-color: dimgray;
 }
 
 .lang-switcher button {
-  background-color: #2c3e50;
+  background-color: black;
   color: white;
-  padding: 10px;
+  padding: 8px;
   cursor: pointer;
   border: none;
 }

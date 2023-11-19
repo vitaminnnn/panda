@@ -1,23 +1,17 @@
 <template>
   <div class="city-autocomplete">
-    <div class="input-wrapper">
-      <input
-        v-model="searchTerm"
-        @input="searchCities"
-        placeholder="Search for a city..."
-        class="city-autocomplete__input"
-      />
-      <span v-if="searchTerm" class="clear-input-btn" @click="clearInput"
-        >&times;</span
-      >
-    </div>
-
+    <input
+      v-model="searchTerm"
+      @input="searchCitiesDebounced"
+      :placeholder="$t('autocomplete.placeholder')"
+      class="city-autocomplete__input"
+    />
+    <span v-if="searchTerm" class="clear-input-btn" @click="clearInput"
+      >&times;</span
+    >
     <transition name="fade">
       <ul v-show="showResults" class="city-autocomplete__results">
         <li
-
-
-
           v-for="city in cities"
           :key="city.id"
           @click="selectCity(city)"
@@ -29,36 +23,42 @@
     </transition>
   </div>
 </template>
+
 <script>
-import axios from "axios";
+import { useWeatherStore } from "@/store/index.js";
+import debounce from "@/utils/debounce.js";
 
 export default {
+  name: "MainCard",
   data() {
     return {
       searchTerm: "",
-      cities: [],
       showResults: false,
     };
   },
+  computed: {
+    cities() {
+      return useWeatherStore().cities;
+    },
+  },
   methods: {
-    async searchCities() {
-      if (this.searchTerm.length >= 3) {
-        try {
-          const response = await axios.get(
-            `https://api.openweathermap.org/data/2.5/find?q=${this.searchTerm}&appid=c9c191ce59409b831172c818e8eec152`,
-          );
-          this.cities = response.data.list;
-          this.showResults = true;
-        } catch (error) {
-          console.error("Error fetching cities:", error);
-        }
+    searchCitiesDebounced: function (searchTerm) {
+      debounce(() => {
+        this.searchCities(searchTerm.target.value);
+      }, 300)();
+    },
+    searchCities(searchTerm) {
+      if (searchTerm.length >= 3) {
+        useWeatherStore().searchCities(searchTerm, this.$i18n.locale);
+        this.showResults = true;
       } else {
         this.showResults = false;
       }
     },
     selectCity(city) {
       this.searchTerm = `${city.name}, ${city.sys.country}`;
-      this.showResults = false;
+      this.$emit("city-selected", city);
+      this.clearInput();
     },
     clearInput() {
       this.searchTerm = "";
@@ -67,15 +67,10 @@ export default {
   },
 };
 </script>
-
 <style scoped>
 .city-autocomplete {
-  position: relative;
-}
-
-.input-wrapper {
-  position: relative;
   width: 100%;
+  position: relative;
 }
 
 .city-autocomplete__input {
@@ -84,12 +79,13 @@ export default {
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .clear-input-btn {
   position: absolute;
   top: 50%;
-  right: 5px;
+  right: 16px;
   transform: translateY(-50%);
   cursor: pointer;
   font-size: 18px;

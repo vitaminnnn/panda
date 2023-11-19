@@ -1,74 +1,75 @@
 <template>
-  <div id="app">
-    <CityAutocomplete />
-    <WeatherCard />
-    <template v-if="activeTab === 'currentWeather'">
-      <WeatherBlocks :citiesWeather="currentCitiesWeather" />
-    </template>
-    <template v-else-if="activeTab === 'favorites'">
-      <Favorites
-        :favoriteCitiesWeather="favoriteCitiesWeather"
-        @remove-favorite-city="removeFavoriteCity"
+  <div class="main-wrapper">
+    <CityAutocomplete @city-selected="addCityBlock" />
+    <Loader v-if="isLoading" />
+    <div v-for="(cityBlock, index) in weatherBlocks" :key="index">
+      <MainCard
+        :card-data="cityBlock"
+        @remove-card="removeCityBlock(index)"
+        @add-to-favorites="addToFavorites(cityBlock)"
+        @remove-from-favorites="removeFromFavorites(cityBlock)"
       />
-    </template>
+    </div>
   </div>
 </template>
 
 <script>
-import CityAutocomplete from "@/components/CityAutocomplete.vue";
-import WeatherCard from "@/components/WeatherCard.vue";
-import WeatherBlocks from "@/components/WeatherBlocks.vue";
-import Favorites from "@/components/Favorites.vue";
+import MainCard from "@/components/MainCard.vue";
+import CityAutocomplete from "~/components/CityAutocomplete.vue";
+import { useWeatherStore } from "@/store/index.js";
+import { useNotificationStore } from "@/store/notification.js";
+import Loader from "~/components/ui/Loader.vue";
 
 export default {
   name: "MainPage",
   components: {
+    Loader,
+    MainCard,
     CityAutocomplete,
-    WeatherCard,
-    WeatherBlocks,
-    Favorites,
   },
   data() {
     return {
-      activeTab: "currentWeather",
-      currentCitiesWeather: [], // Дані поточної погоди
-      favoriteCitiesWeather: [], // Обрані міста
+      isLoading: false,
     };
   },
-  methods: {
-    // Логіка для додавання/видалення обраних міст
-    addFavoriteCity(city) {
-      if (this.favoriteCitiesWeather.length < 5) {
-        this.favoriteCitiesWeather.push(city);
-        this.saveFavorites();
-      } else {
-        // Показати модальне вікно про досягнення максимуму
-        alert("Максимальна кількість обраних міст - 5");
-      }
-    },
-    removeFavoriteCity(cityId) {
-      this.favoriteCitiesWeather = this.favoriteCitiesWeather.filter(
-        (city) => city.id !== cityId,
-      );
-      this.saveFavorites();
-    },
-    // Збереження обраних міст у локальному сховищі
-    saveFavorites() {
-      localStorage.setItem(
-        "favoriteCitiesWeather",
-        JSON.stringify(this.favoriteCitiesWeather),
-      );
-    },
-    // Завантаження обраних міст з локального сховища при старті
-    loadFavorites() {
-      const savedFavorites = localStorage.getItem("favoriteCitiesWeather");
-      this.favoriteCitiesWeather = savedFavorites
-        ? JSON.parse(savedFavorites)
-        : [];
+  computed: {
+    weatherBlocks() {
+      return useWeatherStore().selectedCities;
     },
   },
-  // created() {
-  //   this.loadFavorites();
-  // },
+  methods: {
+    addCityBlock(city) {
+      useWeatherStore().addCity(city);
+    },
+    removeCityBlock(index) {
+      useWeatherStore().removeCity(index);
+    },
+    addToFavorites(cityBlock) {
+      const favorites = useWeatherStore().selectedCities.filter(
+        (city) => city.isFavorite,
+      );
+      if (favorites.length < 5) {
+        useWeatherStore().addToFavorites({ ...cityBlock, isFavorite: true });
+      } else {
+        useNotificationStore().addToast({
+          id: new Date().getTime(),
+          message: this.$t("notification"),
+          duration: 3000,
+        });
+      }
+    },
+    removeFromFavorites(cityBlock) {
+      useWeatherStore().removeFromFavorites(cityBlock);
+    },
+  },
 };
 </script>
+
+<style scoped>
+.main-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+}
+</style>

@@ -6,6 +6,7 @@
 
 <script>
 export default {
+  name: "CustomButton",
   props: {
     type: { type: String, default: "primary" },
     disabled: { type: Boolean, default: false },
@@ -31,10 +32,14 @@ export default {
   border-radius: 5px;
   border: none;
   cursor: pointer;
-  height: 40px;
-  padding: 0 16px;
+  height: 32px;
+  padding: 0 24px;
   display: inline-block;
   width: fit-content;
+  font-weight: 600;
+  transition:
+    color,
+    background-color 0.26s;
 }
 
 .button.disabled {
@@ -45,7 +50,6 @@ export default {
 .primary {
   background-color: #007bff;
   color: #fff;
-  transition: background-color 0.26s;
 }
 
 .primary:hover {
@@ -56,10 +60,21 @@ export default {
   background-color: transparent;
   color: #007bff;
   padding: 0 8px;
-  transition: color 0.26s;
 }
 
 .secondary:hover {
   color: darkblue;
+}
+
+.red {
+  background-color: #ff0000;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.red:hover {
+  background-color: #cc0000;
 }
 </style>

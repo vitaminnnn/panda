@@ -82,6 +82,4 @@ export default {
   cursor: pointer;
   border: none;
 }
-
-/* Add or modify styles as needed */
 </style>

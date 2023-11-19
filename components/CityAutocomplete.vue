@@ -29,7 +29,7 @@ import { useWeatherStore } from "@/store/index.js";
 import debounce from "@/utils/debounce.js";
 
 export default {
-  name: "MainCard",
+  name: "CityAutocomplete",
   data() {
     return {
       searchTerm: "",

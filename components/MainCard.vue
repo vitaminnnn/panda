@@ -6,9 +6,13 @@
       @remove-from-favorites="removeFromFavorites"
     />
     <WeatherChart :card-data="cardData" />
-    <button @click="showConfirmationModal" class="remove-button">
-      {{ $t("remove") }}
-    </button>
+    <CustomButton
+      class="main-card__button"
+      type="red"
+      @click="showConfirmationModal"
+    >
+      {{ $t("remove") }}</CustomButton
+    >
     <ConfirmationModal
       :showModal="showModal"
       @confirm-delete="confirmDelete"
@@ -21,6 +25,7 @@
 import WeatherChart from "@/components/WeatherChart.vue";
 import WeatherCard from "@/components/WeatherCard.vue";
 import ConfirmationModal from "@/components/ui/ConfirmationModal.vue";
+import CustomButton from "~/components/ui/CustomButton.vue";
 
 export default {
   name: "MainCard",
@@ -30,10 +35,9 @@ export default {
       default: () => {},
     },
   },
-  components: { WeatherChart, WeatherCard, ConfirmationModal },
+  components: { CustomButton, WeatherChart, WeatherCard, ConfirmationModal },
   data() {
     return {
-      activeTab: "day",
       showModal: false,
     };
   },
@@ -73,18 +77,7 @@ export default {
   flex-direction: column;
   gap: 8px;
 }
-
-.remove-button {
-  margin-top: 10px;
-  padding: 10px;
-  background-color: #ff0000; /* Red background color, you can change it */
-  color: #fff; /* White text color */
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.remove-button:hover {
-  background-color: #cc0000; /* Darker red background color on hover */
+.main-card__button {
+  width: 100%;
 }
 </style>

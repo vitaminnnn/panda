@@ -1,20 +1,20 @@
 <template>
-  <div>
-    <div class="toggle-buttons">
-      <button
-        @click="debouncedSwitchView('day')"
-        :class="{ active: view === 'day' }"
+  <div class="weather-chart">
+    <div class="weather-chart__toggle-buttons">
+      <CustomButton
+        @click="debouncedSwitchView(DAY_TABS.day)"
+        :class="{ active: view === DAY_TABS.day }"
         :disabled="isDisabled"
       >
-        {{ $t("day") }}
-      </button>
-      <button
-        @click="debouncedSwitchView('5days')"
-        :class="{ active: view === '5days' }"
+        {{ $t("day") }}</CustomButton
+      >
+      <CustomButton
+        @click="debouncedSwitchView(DAY_TABS.days)"
+        :class="{ active: view === DAY_TABS.days }"
         :disabled="isDisabled"
       >
-        {{ $t("5days") }}
-      </button>
+        {{ $t("5days") }}</CustomButton
+      >
     </div>
     <h2>{{ title }}</h2>
     <canvas ref="temperatureChart" width="400" height="200"></canvas>
@@ -24,12 +24,15 @@
 <script>
 import axios from "axios";
 import Chart from "chart.js/auto";
+import { DAY_TABS } from "@/constants/index.js";
 import { useWeatherStore } from "@/store/index.js";
 import kelvinToCelsius from "@/utils/kelvinToCelsius.js";
 import debounce from "@/utils/debounce.js";
+import CustomButton from "~/components/ui/CustomButton.vue";
 
 export default {
   name: "WeatherChart",
+  components: { CustomButton },
   props: {
     cardData: {
       type: Object,
@@ -42,24 +45,80 @@ export default {
       dailyWeather: [],
       todayWeather: [],
       weatherChart: null,
-      averageTemp: 0,
       isDisabled: false,
     };
   },
   computed: {
+    DAY_TABS() {
+      return DAY_TABS;
+    },
     title() {
-      return this.view === "day" ? this.$t("titleDay") : this.$t("title5Day");
+      return this.view === this.DAY_TABS.day
+        ? this.$t("titleDay")
+        : this.$t("title5Day");
     },
   },
   mounted() {
     this.fetchData();
   },
   beforeDestroy() {
-    if (this.weatherChart) {
-      this.weatherChart.destroy();
-    }
+    this.destroyWeatherChart();
   },
   methods: {
+    async fetchData() {
+      try {
+        const response = await axios.get(
+          `https://api.openweathermap.org/data/2.5/forecast?q=${this.cardData.name}&appid=c9c191ce59409b831172c818e8eec152`,
+        );
+        if (response.status === 200) {
+          this.processWeatherData(response.data.list);
+        } else {
+          console.error(
+            "Error fetching weather data. Status:",
+            response.status,
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching weather data:", error);
+      }
+    },
+    processWeatherData(data) {
+      this.dailyWeather = this.processDailyData(data);
+      this.todayWeather = this.processTodayData(data);
+
+      const firstFiveDays = this.dailyWeather.slice(0, 5);
+      this.dailyWeather = firstFiveDays;
+
+      this.switchView(this.view);
+    },
+    processDailyData(hourlyData) {
+      const dailyData = {};
+
+      hourlyData.forEach((hourData) => {
+        const date = this.getDateFromTimestamp(hourData.dt);
+        dailyData[date] = dailyData[date] || { temperatures: [], count: 0 };
+
+        dailyData[date].temperatures.push(hourData.main.temp);
+        dailyData[date].count += 1;
+      });
+
+      return Object.entries(dailyData).map(([date, data]) => ({
+        dt: this.getTimestampFromDate(date),
+        main: {
+          temp:
+            data.temperatures.reduce((acc, temp) => acc + temp, 0) / data.count,
+        },
+      }));
+    },
+    processTodayData(hourlyData) {
+      const today = this.getTodayISOString();
+      return hourlyData
+        .filter((hourData) => this.getDateFromTimestamp(hourData.dt) === today)
+        .map((hourData) => ({
+          dt: hourData.dt,
+          main: { temp: hourData.main.temp },
+        }));
+    },
     debouncedSwitchView: function (viewType) {
       this.isDisabled = true;
       debounce(() => {
@@ -67,80 +126,30 @@ export default {
         this.isDisabled = false;
       }, 1000)();
     },
-    processTodayData(hourlyData) {
-      const todayData = hourlyData.filter((hourData) => {
-        const today = new Date().toISOString().split("T")[0];
-        const dataDate = new Date(hourData.dt * 1000)
-          .toISOString()
-          .split("T")[0];
-        return today === dataDate;
-      });
-
-      return todayData;
-    },
-    async fetchData() {
-      try {
-        const response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/forecast?q=${this.cardData.name}&appid=c9c191ce59409b831172c818e8eec152`,
-        );
-        this.dailyWeather = this.processDailyData(response.data.list);
-        this.todayWeather = this.processTodayData(response.data.list);
-
-        const firstFiveDays = this.dailyWeather.slice(0, 5);
-        this.dailyWeather = firstFiveDays;
-
-        this.switchView(this.view);
-      } catch (error) {
-        console.error("Error fetching weather data:", error);
-      }
-    },
-    processDailyData(hourlyData) {
-      const dailyData = {};
-      hourlyData.forEach((hourData) => {
-        const date = new Date(hourData.dt * 1000).toISOString().split("T")[0];
-        if (!dailyData[date]) {
-          dailyData[date] = { temperatures: [], count: 0 };
-        }
-        dailyData[date].temperatures.push(hourData.main.temp);
-        dailyData[date].count += 1;
-      });
-
-      const dailyWeather = Object.entries(dailyData).map(([date, data]) => ({
-        dt: new Date(date).getTime(),
-        main: {
-          temp:
-            data.temperatures.reduce((acc, temp) => acc + temp, 0) / data.count,
-        },
-      }));
-
-      return dailyWeather;
-    },
     switchView(viewType) {
       this.view = viewType;
 
-      const canvas = this.$refs.temperatureChart;
+      this.$nextTick(async () => {
+        const canvas = this.$refs.temperatureChart;
+        if (!canvas) {
+          console.error("Canvas element not found.");
+          return;
+        }
 
-      if (!canvas) {
-        console.error("Canvas element not found.");
-        return;
-      }
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          console.error("Canvas context not found.");
+          return;
+        }
 
-      const ctx = canvas.getContext("2d");
+        await this.destroyWeatherChart();
 
-      if (!ctx) {
-        console.error("Canvas context not found.");
-        return;
-      }
-
-      if (this.weatherChart) {
-        this.weatherChart.destroy();
-      }
-
-      if (viewType === "day") {
-        this.showDayView(ctx);
-      } else if (viewType === "5days") {
-        this.show5DaysView(ctx);
-      }
+        if (viewType === DAY_TABS.day) {
+          this.showDayView(ctx);
+        } else if (viewType === DAY_TABS.days) {
+          this.show5DaysView(ctx);
+        }
+      });
     },
     showDayView(ctx) {
       const labels = this.todayWeather.map((entry) =>
@@ -149,16 +158,9 @@ export default {
       const data = this.todayWeather.map((entry) =>
         kelvinToCelsius(entry.main.temp),
       );
+      const averageTemp = this.calculateAverageTemp(this.todayWeather);
 
-      const averageTemp =
-        this.todayWeather.reduce((acc, entry) => acc + entry.main.temp, 0) /
-        this.todayWeather.length;
-
-      useWeatherStore().updateAverageTemp(averageTemp, this.cardData.id);
-
-      if (this.weatherChart) {
-        this.weatherChart.destroy();
-      }
+      this.updateAverageTemp(averageTemp);
 
       this.weatherChart = new Chart(ctx, {
         type: "line",
@@ -176,16 +178,8 @@ export default {
         },
         options: {
           scales: {
-            x: {
-              type: "linear",
-              position: "bottom",
-              ticks: {
-                stepSize: 1,
-              },
-            },
-            y: {
-              beginAtZero: false,
-            },
+            x: { type: "linear", position: "bottom", ticks: { stepSize: 1 } },
+            y: { beginAtZero: false },
           },
         },
       });
@@ -197,16 +191,9 @@ export default {
       const data = this.dailyWeather.map((entry) =>
         kelvinToCelsius(entry.main.temp),
       );
+      const averageTemp = this.calculateAverageTemp(this.dailyWeather);
 
-      if (this.weatherChart) {
-        this.weatherChart.destroy();
-      }
-
-      const averageTemp =
-        this.dailyWeather.reduce((acc, entry) => acc + entry.main.temp, 0) /
-        this.dailyWeather.length;
-
-      useWeatherStore().updateAverageTemp(averageTemp, this.cardData.id);
+      this.updateAverageTemp(averageTemp);
 
       this.weatherChart = new Chart(ctx, {
         type: "bar",
@@ -224,9 +211,7 @@ export default {
         },
         options: {
           scales: {
-            y: {
-              beginAtZero: true,
-            },
+            y: { beginAtZero: true },
           },
         },
       });
@@ -234,10 +219,7 @@ export default {
     formatTime(timestamp) {
       const date = new Date(timestamp * 1000);
       const hours = date.getHours();
-      const minutes = date.getMinutes();
-
-      const formattedHours = hours < 10 ? `0${hours}` : hours;
-      const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes;
+      const formattedHours = this.formatNumber(hours);
 
       return `${formattedHours}`;
     },
@@ -245,28 +227,44 @@ export default {
       const date = new Date(timestamp);
       return `${date.getDate()}/${date.getMonth() + 1}`;
     },
+    formatNumber(number) {
+      return number < 10 ? `0${number}` : `${number}`;
+    },
+    getTodayISOString() {
+      return new Date().toISOString().split("T")[0];
+    },
+    getDateFromTimestamp(timestamp) {
+      return new Date(timestamp * 1000).toISOString().split("T")[0];
+    },
+    getTimestampFromDate(date) {
+      return new Date(date).getTime();
+    },
+    destroyWeatherChart() {
+      return new Promise((resolve) => {
+        if (this.weatherChart) {
+          this.weatherChart.destroy();
+          this.weatherChart = null;
+          setTimeout(resolve, 300);
+        } else {
+          resolve();
+        }
+      });
+    },
+    calculateAverageTemp(data) {
+      return (
+        data.reduce((acc, entry) => acc + entry.main.temp, 0) / data.length
+      );
+    },
+    updateAverageTemp(averageTemp) {
+      useWeatherStore().updateAverageTemp(averageTemp, this.cardData.id);
+    },
   },
 };
 </script>
 
 <style scoped>
-.toggle-buttons {
+.weather-chart__toggle-buttons {
   display: flex;
-  gap: 12px;
-}
-
-.toggle-buttons button {
-  padding: 10px 32px;
-  font-size: 16px;
-  cursor: pointer;
-  border: none;
-  outline: none;
-  background-color: #4caf50;
-  color: white;
-  border-radius: 5px;
-}
-
-.toggle-buttons button.active {
-  background-color: darkgreen;
+  gap: 8px;
 }
 </style>

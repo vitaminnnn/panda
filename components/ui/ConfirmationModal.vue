@@ -5,19 +5,21 @@
         {{ $t("modal.description") }}
       </p>
       <div class="button-container">
-        <button @click="confirmDelete" class="confirm-button">
-          {{ $t("yes") }}
-        </button>
-        <button @click="cancelDelete" class="cancel-button">
-          {{ $t("no") }}
-        </button>
+        <CustomButton @click="cancelDelete"> {{ $t("yes") }}</CustomButton>
+        <CustomButton type="red" @click="cancelDelete">
+          {{ $t("no") }}</CustomButton
+        >
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import CustomButton from "~/components/ui/CustomButton.vue";
+
 export default {
+  name: "ConfirmationModal",
+  components: { CustomButton },
   props: {
     showModal: {
       type: Boolean,
@@ -64,22 +66,5 @@ export default {
   display: flex;
   justify-content: center;
   gap: 8px;
-}
-
-button {
-  padding: 8px 24px;
-  cursor: pointer;
-  border: none;
-  border-radius: 5px;
-}
-
-.confirm-button {
-  background-color: #4caf50;
-  color: white;
-}
-
-.cancel-button {
-  background-color: #f44336;
-  color: white;
 }
 </style>

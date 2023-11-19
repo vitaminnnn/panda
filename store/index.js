@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import axios from "axios";
+import { API_KEYS } from "~/constants/index.js";
 
 export const useWeatherStore = defineStore("weatherStore", {
   state: () => ({
@@ -9,14 +10,25 @@ export const useWeatherStore = defineStore("weatherStore", {
     isLoading: false,
     averageTemp: 0,
   }),
-  getters: {
-    getWeatherList: (state) => state.weatherList,
-  },
   actions: {
+    async getUserLocation() {
+      this.isLoading = true;
+      try {
+        const locationResponse = await axios.get(
+          `https://ipinfo.io?token=${API_KEYS.token}`,
+        );
+        const { city, country } = locationResponse.data;
+        await this.setCityFromIp(city, country);
+      } catch (error) {
+        console.error("Error fetching user location:", error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
     async searchCities(searchTerm, lang) {
       try {
         const response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/find?q=${searchTerm}&lang=${lang}&appid=c9c191ce59409b831172c818e8eec152`,
+          `https://api.openweathermap.org/data/2.5/find?q=${searchTerm}&lang=${lang}&appid=${API_KEYS.weather}`,
         );
         this.cities = response.data.list;
       } catch (error) {
@@ -25,17 +37,14 @@ export const useWeatherStore = defineStore("weatherStore", {
     },
     async setCityFromIp(city, country) {
       try {
-        this.setIsLoading(true);
         const response = await axios.get(
-          `https://api.openweathermap.org/data/2.5/find?q=${city},${country}&appid=c9c191ce59409b831172c818e8eec152`,
+          `https://api.openweathermap.org/data/2.5/find?q=${city},${country}&appid=${API_KEYS.weather}`,
         );
 
         const cityData = response.data.list[0];
         this.updateSelectedCities(cityData);
       } catch (error) {
         console.error("Error fetching cities:", error);
-      } finally {
-        this.setIsLoading(false);
       }
     },
     addToSelectedCities(cityData) {
@@ -62,7 +71,7 @@ export const useWeatherStore = defineStore("weatherStore", {
 
       if (index !== -1) {
         this.selectedCities.splice(index, 1);
-        this.saveToLocalStorage(); // Збереження змін у локальному сховищі
+        this.saveToLocalStorage();
       }
     },
     addCity(city) {
@@ -72,8 +81,6 @@ export const useWeatherStore = defineStore("weatherStore", {
 
       if (!existingCity) {
         this.addToSelectedCities(city);
-      } else {
-        console.log("City already exists in selectedCities");
       }
     },
     updateSelectedCities(cityData) {
@@ -102,9 +109,6 @@ export const useWeatherStore = defineStore("weatherStore", {
     loadFromLocalStorage() {
       const storedCities = localStorage.getItem("selectedCities");
       this.selectedCities = storedCities ? JSON.parse(storedCities) : [];
-    },
-    setIsLoading(value) {
-      this.isLoading = value;
     },
     addToFavorites(cityData) {
       const existingCity = this.selectedCities.find(

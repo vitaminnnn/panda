@@ -19,21 +19,8 @@ export default {
   components: {
     Notification,
   },
-  methods: {
-    async getUserLocation() {
-      try {
-        const locationResponse = await axios.get(
-          "https://ipinfo.io?token=1c79ec2b1e0870",
-        );
-        const { city, country } = locationResponse.data;
-        await useWeatherStore().setCityFromIp(city, country);
-      } catch (error) {
-        console.error("Error fetching user location:", error);
-      }
-    },
-  },
   mounted() {
-    this.getUserLocation();
+    useWeatherStore().getUserLocation();
     useWeatherStore().loadFromLocalStorage();
   },
 };
@@ -60,10 +47,15 @@ html {
   width: 100%;
   margin: 0 auto;
   max-width: 1200px;
-  padding: 0 10px;
   box-sizing: border-box;
+  padding: 0 8px;
 }
 
+@media (min-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+}
 .v-enter-active,
 .v-leave-active {
   transition: opacity 0.5s ease;

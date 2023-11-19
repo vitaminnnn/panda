@@ -27,14 +27,12 @@ export default {
     MainCard,
     CityAutocomplete,
   },
-  data() {
-    return {
-      isLoading: false,
-    };
-  },
   computed: {
     weatherBlocks() {
       return useWeatherStore().selectedCities;
+    },
+    isLoading() {
+      return useWeatherStore().isLoading;
     },
   },
   methods: {

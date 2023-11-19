@@ -13,13 +13,13 @@
       </button>
     </div>
     <div class="weather-card__content">
-      <p class="weather-card__temperature">
+      <p class="weather-card__temperature" v-if="cardData.main.temp">
         {{ $t("temperature", { temp: kelvinToCelsius(cardData.main.temp) }) }}
       </p>
-      <p class="weather-card__humidity">
+      <p class="weather-card__humidity" v-if="cardData.main.humidity">
         {{ $t("humidity", { humidity: cardData.main.humidity }) }}
       </p>
-      <p class="weather-card__wind-speed">
+      <p class="weather-card__wind-speed" v-if="cardData.wind.speed">
         {{ $t("windSpeed", { speed: cardData.wind.speed }) }}
       </p>
     </div>
@@ -85,12 +85,7 @@ export default {
 
 .weather-card__temperature,
 .weather-card__humidity,
-.weather-card__wind-speed,
-.weather-card__description {
+.weather-card__wind-speed {
   margin: 0;
-}
-
-.weather-card__additional-content {
-  /* Additional styles for favorite city information */
 }
 </style>

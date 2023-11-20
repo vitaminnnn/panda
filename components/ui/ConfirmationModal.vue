@@ -5,7 +5,7 @@
         {{ $t("modal.description") }}
       </p>
       <div class="button-container">
-        <CustomButton @click="cancelDelete"> {{ $t("yes") }}</CustomButton>
+        <CustomButton @click="confirmDelete"> {{ $t("yes") }}</CustomButton>
         <CustomButton type="red" @click="cancelDelete">
           {{ $t("no") }}</CustomButton
         >
